@@ -1,56 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Hero Backgrounds</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Animated canvas backgrounds in one small file. No dependencies, no network.">
 <style>
-/* Layout: one live stage on top, controls and the copyable snippet beneath, usage notes last. */
-:root{--bg:#FAFAF7;--surface:#fff;--ink:#1F2421;--muted:#5F675F;--line:#E3E5DF;--accent:#0B7A4B;--on:#fff;--stage:#F3F4EF;--f:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#141816;--surface:#1C211E;--ink:#E8EDE9;--muted:#9AA39B;--line:#2C332F;--accent:#5BC98F;--on:#0E1411;--stage:#101412;color-scheme:dark}}
-:root[data-theme=dark]{--bg:#141816;--surface:#1C211E;--ink:#E8EDE9;--muted:#9AA39B;--line:#2C332F;--accent:#5BC98F;--on:#0E1411;--stage:#101412;color-scheme:dark}
-*{box-sizing:border-box}body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f);padding-block:24px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.w{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-h1{font-size:22px;margin:0;letter-spacing:-.01em}.sub{color:var(--muted);margin:2px 0 0;font-size:15px}
+:root{--bg:#F4F5F0;--ink:#1F2421;--muted:#566057;--glass:rgba(255,255,255,.72);--line:rgba(31,36,33,.14);--accent:#0B7A4B;--on:#fff;--f:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0D110F;--ink:#EEF3EF;--muted:#A3ADA5;--glass:rgba(18,23,20,.72);--line:rgba(238,243,239,.16);--accent:#5BC98F;--on:#0E1411;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#0D110F;--ink:#EEF3EF;--muted:#A3ADA5;--glass:rgba(18,23,20,.72);--line:rgba(238,243,239,.16);--accent:#5BC98F;--on:#0E1411;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--f);overflow:hidden}
 button,input{font:inherit;color:inherit}
-.btn{min-height:44px;padding:0 16px;border-radius:99px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer}
-.btn:hover{border-color:var(--accent)}.btn:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.btn[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--on)}
-.stage{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:16px;background:var(--stage);min-height:380px;display:flex;align-items:center;justify-content:center;text-align:center;padding:48px 20px}
-.stage .in{position:relative;z-index:1;max-width:560px}
-.stage h2{font-size:clamp(30px,5.5vw,52px);line-height:1.08;margin:0 0 12px;letter-spacing:-.02em;text-wrap:balance}
-.stage p{margin:0;color:var(--muted);font-size:18px}
-.panel{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.card{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
-.card h3{margin:0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.modes{display:flex;flex-wrap:wrap;gap:8px}
-.row{display:grid;grid-template-columns:90px 1fr 44px;align-items:center;gap:12px;font-size:15px}
-.row output{color:var(--muted);font-variant-numeric:tabular-nums;text-align:right}
-input[type=range]{width:100%;accent-color:var(--accent)}input[type=color]{width:44px;height:36px;padding:2px;border:1px solid var(--line);border-radius:8px;background:var(--surface);cursor:pointer}
-.chk{display:flex;align-items:center;gap:10px;min-height:32px}.chk input{width:18px;height:18px;accent-color:var(--accent)}
-pre{margin:0;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px;font:13.5px/1.55 var(--mono);overflow-x:auto;white-space:pre}
-.cp{align-self:flex-start}
-dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15px}dt{font:13.5px var(--mono);color:var(--accent)}dd{margin:0;color:var(--muted)}
-footer{color:var(--muted);font-size:14px}
-@media(max-width:700px){.panel{grid-template-columns:1fr}.stage{min-height:320px}}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:72px max(20px,env(safe-area-inset-right)) 220px max(20px,env(safe-area-inset-left))}
+.hero{position:relative;z-index:1;max-width:720px}
+.hero h1{font-size:clamp(38px,7vw,84px);line-height:1.02;margin:0 0 16px;letter-spacing:-.03em;text-wrap:balance}
+.hero p{margin:0;color:var(--muted);font-size:clamp(17px,2.2vw,22px)}
+.top{position:fixed;z-index:3;top:max(16px,env(safe-area-inset-top));left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right));display:flex;justify-content:space-between;align-items:center;gap:12px}
+.mark{font-weight:600;letter-spacing:-.01em}
+.glass{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.pill{min-height:44px;padding:0 16px;border-radius:99px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;text-decoration:none;color:var(--ink)}
+.pill:hover{border-color:var(--accent)}
+.modes .pill[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--on)}
+.links{display:flex;gap:8px}
+.dock{position:fixed;z-index:3;left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));display:flex;justify-content:space-between;align-items:flex-end;gap:16px;pointer-events:none}
+.dock>*{pointer-events:auto}
+.modes{display:flex;flex-wrap:wrap;gap:8px;max-width:640px}
+.panel{width:340px;max-width:100%;border-radius:18px;padding:6px 18px 18px}
+.panel summary{list-style:none;display:flex;justify-content:space-between;align-items:center;min-height:44px;cursor:pointer;font-weight:600}
+.panel summary::-webkit-details-marker{display:none}
+.panel summary::after{content:"Hide";color:var(--muted);font-weight:400;font-size:14px}
+.panel:not([open]) summary::after{content:"Show"}
+.panel h2{margin:12px 0 8px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.row{display:grid;grid-template-columns:70px 1fr 40px;align-items:center;gap:10px;font-size:15px;min-height:40px}
+.row output{color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent)}
+input[type=color]{width:44px;height:34px;padding:2px;border:1px solid var(--line);border-radius:8px;background:transparent;cursor:pointer}
+.chk{display:flex;align-items:center;gap:10px;min-height:40px;font-size:15px}.chk input{width:18px;height:18px;accent-color:var(--accent)}
+pre{margin:0;background:rgba(0,0,0,.08);border:1px solid var(--line);border-radius:10px;padding:12px;font:12.5px/1.5 var(--mono);overflow:auto;max-height:150px;white-space:pre}
+.cp{margin-top:10px;width:100%;justify-content:center;border:1.5px solid var(--line);background:transparent}
+@media(max-width:760px){
+  .stage{padding-bottom:300px}
+  .dock{flex-direction:column;align-items:stretch}
+  .panel{width:100%}
+  .modes{flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding-bottom:2px;scrollbar-width:none}.modes .pill{flex:none}
+  .mark{display:none}
+}
 </style>
-<div class="w">
-<header><div><h1>Hero Backgrounds</h1><p class="sub">Animated canvas backgrounds in one small file. No dependencies, no network.</p></div><button class="btn" id="tog" aria-pressed="false">Dark</button></header>
-<section class="stage" id="stage"><div class="in"><h2>Backgrounds that stay out of the way</h2><p>Eight modes, one function call, about 12 KB.</p></div></section>
-<section class="panel">
-<div class="card"><h3>Mode</h3><div class="modes" id="modes"></div>
-<div class="row"><label for="col">Accent</label><input type="color" id="col" value="#0b7a4b"><output></output></div>
+</head>
+<body>
+<section class="stage" id="stage"><div class="hero"><h1>Backgrounds that stay out of the way</h1><p>Eight animated modes in one small file. No dependencies, no network.</p></div></section>
+<div class="top"><span class="mark">hero-backgrounds</span><div class="links"><a class="pill glass" href="https://github.com/holroydchase-afk/hero-backgrounds">GitHub</a><button class="pill glass" id="tog" aria-pressed="false">Dark</button></div></div>
+<div class="dock">
+<div class="modes" id="modes" role="group" aria-label="Mode"></div>
+<details class="panel glass" id="panel" open>
+<summary>Settings</summary>
+<h2>1. Customize</h2>
+<div class="row"><label for="col">Color</label><input type="color" id="col" value="#0b7a4b"><output></output></div>
 <div class="row"><label for="spd">Speed</label><input type="range" id="spd" min="0" max="3" step=".25" value="1"><output id="spdo">1</output></div>
 <div class="row"><label for="den">Density</label><input type="range" id="den" min=".4" max="2" step=".1" value="1"><output id="deno">1</output></div>
-<label class="chk"><input type="checkbox" id="mouse" checked> React to the pointer</label></div>
-<div class="card"><h3>Copy this</h3><pre id="code"></pre><button class="btn cp" id="cp">Copy snippet</button></div>
-</section>
-<section class="card"><h3>Options</h3><dl>
-<dt>mode</dt><dd>constellation, neural, organic, flow, grid, dots, waves or threads</dd>
-<dt>color</dt><dd>Accent for signals, hubs and highlights. Lines and dots are derived from it.</dd>
-<dt>line, accent2</dt><dd>Optional. Set the line colour yourself, or a second accent for organic hubs.</dd>
-<dt>speed</dt><dd>0 freezes it, 2 is double. Reduced-motion users always get a still frame.</dd>
-<dt>density</dt><dd>More or fewer elements. 1 is the default.</dd>
-<dt>mouse, background</dt><dd>Pointer response on or off. Optional CSS colour behind the canvas.</dd>
-<dt>setOptions, destroy</dt><dd>The returned object changes options live or removes the canvas.</dd></dl></section>
-<footer>Pauses when off-screen, resizes with its element, flat colour only. MIT licence.</footer>
+<label class="chk"><input type="checkbox" id="mouse" checked> React to the pointer</label>
+<h2>2. Grab the code</h2>
+<pre id="code"></pre>
+<button class="pill cp" id="cp">Copy snippet</button>
+</details>
 </div>
 <script>
 /*! hero-backgrounds.js: animated canvas backgrounds in one small file. No dependencies, no network.
@@ -316,7 +331,8 @@ footer{color:var(--muted);font-size:14px}
 </script>
 <script>
 (function(){
-var r=document.documentElement,tog=document.getElementById('tog'),stage=document.getElementById('stage');
+var r=document.documentElement,tog=document.getElementById('tog'),stage=document.getElementById('stage'),panel=document.getElementById('panel');
+if(matchMedia('(max-width:760px)').matches)panel.open=false;
 var opts={mode:'constellation',color:'#0b7a4b',speed:1,density:1,mouse:true},bg;
 try{bg=HeroBG(stage,opts)}catch(e){console.error(e)}
 function isDark(){return r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches}
@@ -325,7 +341,7 @@ var userColor=false;
 function themeColor(){if(!userColor){opts.color=isDark()?'#5bc98f':'#0b7a4b';document.getElementById('col').value=opts.color;bg.setOptions({color:opts.color});code()}}
 tog.onclick=function(){r.dataset.theme=isDark()?'light':'dark';lab();themeColor()};lab();
 var box=document.getElementById('modes');
-HeroBG.modes.forEach(function(m){var b=document.createElement('button');b.className='btn';b.textContent=m;b.dataset.m=m;b.setAttribute('aria-pressed',m===opts.mode);b.onclick=function(){opts.mode=m;bg.setOptions({mode:m});box.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x===b)});code()};box.appendChild(b)});
+HeroBG.modes.forEach(function(m){var b=document.createElement('button');b.className='pill glass';b.textContent=m;b.setAttribute('aria-pressed',m===opts.mode);b.onclick=function(){opts.mode=m;bg.setOptions({mode:m});box.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x===b)});code()};box.appendChild(b)});
 function bind(id,key,outId,num){var el=document.getElementById(id);el.oninput=function(){var v=num?+el.value:el.value;opts[key]=v;if(outId)document.getElementById(outId).textContent=v;if(key==='color')userColor=true;var o={};o[key]=v;bg.setOptions(o);code()}}
 bind('col','color');bind('spd','speed','spdo',1);bind('den','density','deno',1);
 document.getElementById('mouse').onchange=function(e){opts.mouse=e.target.checked;bg.setOptions({mouse:opts.mouse});code()};
@@ -337,3 +353,4 @@ cp.onclick=function(){var t=pre.textContent;function ok(){cp.textContent='Copied
 try{navigator.clipboard.writeText(t).then(ok,fb)}catch(e){fb()}function fb(){var s=getSelection(),g=document.createRange();g.selectNodeContents(pre);s.removeAllRanges();s.addRange(g);cp.textContent='Selected, press copy'}};
 })();
 </script>
+</body></html>
