@@ -210,6 +210,13 @@
     }
   };
 
+  function pageBg(el) {    // first opaque background up the tree, else the colour scheme's default
+    for (var n = el; n && n.nodeType === 1; n = n.parentNode) {
+      var m = /rgba?\((\d+)[ ,]+(\d+)[ ,]+(\d+)(?:[ ,/]+([\d.]+))?/.exec(getComputedStyle(n).backgroundColor);
+      if (m && (m[4] === undefined || +m[4] > .5)) return [+m[1], +m[2], +m[3]];
+    }
+    return matchMedia('(prefers-color-scheme: dark)').matches ? [20, 24, 22] : [250, 250, 247];
+  }
   function HeroBG(el, opts) {
     if (typeof el === 'string') el = document.querySelector(el);
     if (!el) throw new Error('HeroBG: element not found');
@@ -224,7 +231,7 @@
       S.o = Object.assign({}, S.o || DEFAULTS, o || {});
       if (!MODES[S.o.mode]) throw new Error('HeroBG: unknown mode "' + S.o.mode + '"');
       S.accent = rgb(S.o.color); S.accent2 = S.o.accent2 ? rgb(S.o.accent2) : null;
-      S.line = S.o.line ? rgb(S.o.line) : (.299 * S.accent[0] + .587 * S.accent[1] + .114 * S.accent[2] > 140 ? mix(S.accent, [0, 0, 0], .72) : mix(S.accent, [255, 255, 255], .78));  // light accent = dark page, so dim the lines
+      S.line = S.o.line ? rgb(S.o.line) : mix(S.accent, pageBg(el), .6);  // accent faded toward the page colour, so it changes smoothly with the accent
       cv.style.background = S.o.background || 'transparent';
       resize();
     }
