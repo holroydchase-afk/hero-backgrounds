@@ -22,12 +22,13 @@ Animated canvas backgrounds for a hero section, in one small file. No dependenci
 | `color` | `#4A6B4C` | Accent colour |
 | `speed` | `1` | `0` freezes, `2` is double |
 | `density` | `1` | More or fewer elements |
+| `accent2` | `null` | Secondary colour. Aurora, mesh, noise, particles, pulse, constellation, dots, waves and threads blend it with `color` |
 | `mouse` | `true` | React to the pointer where the mode supports it |
 | `background` | `null` | CSS colour behind the canvas |
 
 ## Modes
 
-`constellation`, `neural`, `organic`, `flow`, `grid`, `dots`, `waves`, `threads`, `aurora`, `mesh`, `orb`, `particles`, `pulse`. The list is also at `HeroBG.modes`.
+`constellation`, `neural`, `organic`, `flow`, `grid`, `dots`, `waves`, `threads`, `aurora`, `mesh`, `particles`, `pulse`, `noise`. The list is also at `HeroBG.modes`.
 
 ## Performance and motion
 
