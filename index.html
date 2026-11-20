@@ -296,19 +296,19 @@ pre{margin:0;background:rgba(0,0,0,.08);border:1px solid var(--line);border-radi
       var pal = palette(S), n = Math.max(2, Math.min(7, Math.round(3 * S.o.density))), i; S.rb = [];
       for (i = 0; i < n; i++) {
         var col = pal[i % pal.length], st = document.createElement('canvas'), g, x;
-        st.width = 1; st.height = 64; x = st.getContext('2d'); g = x.createLinearGradient(0, 0, 0, 64);
-        g.addColorStop(0, rgba(col, 0)); g.addColorStop(.7, rgba(col, .24)); g.addColorStop(.92, rgba(col, .36)); g.addColorStop(1, rgba(col, 0));
-        x.fillStyle = g; x.fillRect(0, 0, 1, 64);
-        S.rb.push({ st: st, y: .3 + .4 * (n > 1 ? i / (n - 1) : .5), ph: Math.random() * TAU, sp: .6 + Math.random() * .6, f: .8 + Math.random() * 1.1, amp: .07 + Math.random() * .07, h: .26 + Math.random() * .16 });
+        st.width = 1; st.height = 256; x = st.getContext('2d'); g = x.createLinearGradient(0, 0, 0, 256);
+        g.addColorStop(0, rgba(col, 0)); g.addColorStop(.55, rgba(col, .2)); g.addColorStop(.93, rgba(col, .55)); g.addColorStop(.97, rgba(mix(col, [255, 255, 255], .45), .85)); g.addColorStop(1, rgba(col, 0));
+        x.fillStyle = g; x.fillRect(0, 0, 1, 256);
+        S.rb.push({ st: st, y: .3 + .4 * (n > 1 ? i / (n - 1) : .5), ph: Math.random() * TAU, sp: .6 + Math.random() * .6, f: .8 + Math.random() * 1.1, amp: .07 + Math.random() * .07, h: .2 + Math.random() * .12 });
       }
     },
     draw: function (S, t) {
       var c = S.cx, T = t * S.o.speed, W = S.W, H = S.H, i, x;
       S.rb.forEach(function (r) {
-        for (x = 0; x < W; x += 3) {
+        for (x = 0; x < W; x += 2) {
           var yb = H * r.y + Math.sin(x * .0035 * r.f + T * .25 * r.sp + r.ph) * H * r.amp + Math.sin(x * .009 - T * .18 * r.sp + r.ph * 2) * H * r.amp * .4,
               hh = H * r.h * (.72 + .28 * Math.sin(x * .006 + T * .3 + r.ph));
-          c.drawImage(r.st, 0, 0, 1, 64, x, yb - hh, 3, hh);
+          c.drawImage(r.st, 0, 0, 1, 256, x, yb - hh, 2, hh);
         }
       });
     }
@@ -317,13 +317,13 @@ pre{margin:0;background:rgba(0,0,0,.08);border:1px solid var(--line);border-radi
   MODES.mesh = {      // slow blending colour blobs
     init: function (S) {
       var pal = palette(S), n = Math.max(3, Math.min(9, Math.round(5 * S.o.density))), i; S.bl = [];
-      for (i = 0; i < n; i++) S.bl.push({ c: pal[i % pal.length], fx: .12 + Math.random() * .2, fy: .12 + Math.random() * .2, px: Math.random() * TAU, py: Math.random() * TAU, r: .36 + Math.random() * .2 });
+      for (i = 0; i < n; i++) S.bl.push({ c: pal[i % pal.length], fx: .12 + Math.random() * .2, fy: .12 + Math.random() * .2, px: Math.random() * TAU, py: Math.random() * TAU, r: .3 + .16 * Math.random() });
     },
     draw: function (S, t) {
       var c = S.cx, T = t * S.o.speed, W = S.W, H = S.H, R0 = Math.max(W, H);
       S.bl.forEach(function (b) {
         var x = W * (.5 + .4 * Math.sin(T * b.fx + b.px)), y = H * (.5 + .4 * Math.sin(T * b.fy + b.py)), R = R0 * b.r, g = c.createRadialGradient(x, y, 0, x, y, R);
-        g.addColorStop(0, rgba(b.c, .4)); g.addColorStop(.55, rgba(b.c, .14)); g.addColorStop(1, rgba(b.c, 0));
+        g.addColorStop(0, rgba(b.c, .7)); g.addColorStop(.4, rgba(b.c, .38)); g.addColorStop(.75, rgba(b.c, .1)); g.addColorStop(1, rgba(b.c, 0));
         c.fillStyle = g; c.fillRect(0, 0, W, H);
       });
     }
@@ -337,11 +337,12 @@ pre{margin:0;background:rgba(0,0,0,.08);border:1px solid var(--line);border-radi
       S.ox += (tx - S.ox) * .06; S.oy += (ty - S.oy) * .06;
       var x = W / 2 + S.ox + Math.sin(T * .31) * r * .08, y = H / 2 + S.oy + Math.cos(T * .27) * r * .08, g;
       g = c.createRadialGradient(x, y, r * .6, x, y, r * 2.6);      // halo
-      g.addColorStop(0, rgba(pal[0], .3)); g.addColorStop(.5, rgba(pal[1], .1)); g.addColorStop(1, rgba(pal[1], 0));
+      g.addColorStop(0, rgba(pal[0], .26)); g.addColorStop(.5, rgba(pal[1], .08)); g.addColorStop(1, rgba(pal[1], 0));
       c.fillStyle = g; c.fillRect(0, 0, W, H);
       g = c.createRadialGradient(x - r * .35, y - r * .4, r * .05, x, y, r);   // body, lit from the upper left
-      g.addColorStop(0, rgba(mix(pal[0], [255, 255, 255], .7), .85)); g.addColorStop(.4, rgba(pal[0], .6)); g.addColorStop(.86, rgba(pal[2], .5)); g.addColorStop(1, rgba(pal[2], 0));
+      g.addColorStop(0, rgba(mix(pal[0], [255, 255, 255], .75), .95)); g.addColorStop(.35, rgba(pal[0], .85)); g.addColorStop(.92, rgba(pal[2], .9)); g.addColorStop(1, rgba(mix(pal[2], [255, 255, 255], .35), .95));
       c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill();
+      c.lineWidth = 1.5; c.strokeStyle = rgba(mix(pal[0], [255, 255, 255], .6), .55); c.stroke();
     }
   };
 
