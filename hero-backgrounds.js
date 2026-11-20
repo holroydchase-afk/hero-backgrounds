@@ -1,6 +1,6 @@
 /*! hero-backgrounds.js: animated canvas backgrounds in one small file. No dependencies, no network.
     HeroBG(element, { mode: 'constellation', color: '#4A6B4C', speed: 1, density: 1 })  -> { setOptions, destroy }
-    Modes: constellation, neural, organic, flow, grid, dots, waves, threads. MIT licence. */
+    Modes: constellation, neural, organic, flow, grid, dots, waves, threads, aurora, mesh, orb. MIT licence. */
 (function (root) {
   'use strict';
   var TAU = Math.PI * 2;
@@ -23,6 +23,15 @@
   }
   function rgba(c, a) { return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')'; }
   function mix(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t].map(Math.round); }
+
+  function shift(c, deg) {    // rotate a colour's hue; greys stay grey
+    var r = c[0] / 255, g = c[1] / 255, b = c[2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, h = 0, s = 0, d = mx - mn;
+    if (d) { s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn); h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; }
+    h = (h + deg + 360) % 360;
+    function f(n) { var k = (n + h / 30) % 12, a = s * Math.min(l, 1 - l); return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))); }
+    return [f(0), f(8), f(4)];
+  }
+  function palette(S) { return [S.accent, S.accent2 || shift(S.accent, -38), shift(S.accent, 34), shift(S.accent, 72)]; }  // neighbouring hues of the accent
 
   /* Each mode: init(S) builds state from S.W, S.H, S.o; draw(S, t, dt) paints one frame. */
   var MODES = {};
@@ -207,6 +216,60 @@
         var cxm = W / 2 + (left ? -1 : 1) * (W * .22) + Math.sin(T * .15 + i * 1.7) * 30, cym = sy + (ty - sy) * .2 + Math.cos(T * .2 + i) * 20;
         c.strokeStyle = i % 5 === 0 ? rgba(S.accent, .4) : rgba(S.line, .7); c.beginPath(); c.moveTo(sx, sy); c.quadraticCurveTo(cxm, cym, tx, ty); c.stroke();
       }
+    }
+  };
+
+  MODES.aurora = {    // soft light curtains drifting across the page
+    init: function (S) {
+      var pal = palette(S), n = Math.max(2, Math.min(7, Math.round(3 * S.o.density))), i; S.rb = [];
+      for (i = 0; i < n; i++) {
+        var col = pal[i % pal.length], st = document.createElement('canvas'), g, x;
+        st.width = 1; st.height = 64; x = st.getContext('2d'); g = x.createLinearGradient(0, 0, 0, 64);
+        g.addColorStop(0, rgba(col, 0)); g.addColorStop(.7, rgba(col, .24)); g.addColorStop(.92, rgba(col, .36)); g.addColorStop(1, rgba(col, 0));
+        x.fillStyle = g; x.fillRect(0, 0, 1, 64);
+        S.rb.push({ st: st, y: .3 + .4 * (n > 1 ? i / (n - 1) : .5), ph: Math.random() * TAU, sp: .6 + Math.random() * .6, f: .8 + Math.random() * 1.1, amp: .07 + Math.random() * .07, h: .26 + Math.random() * .16 });
+      }
+    },
+    draw: function (S, t) {
+      var c = S.cx, T = t * S.o.speed, W = S.W, H = S.H, i, x;
+      S.rb.forEach(function (r) {
+        for (x = 0; x < W; x += 3) {
+          var yb = H * r.y + Math.sin(x * .0035 * r.f + T * .25 * r.sp + r.ph) * H * r.amp + Math.sin(x * .009 - T * .18 * r.sp + r.ph * 2) * H * r.amp * .4,
+              hh = H * r.h * (.72 + .28 * Math.sin(x * .006 + T * .3 + r.ph));
+          c.drawImage(r.st, 0, 0, 1, 64, x, yb - hh, 3, hh);
+        }
+      });
+    }
+  };
+
+  MODES.mesh = {      // slow blending colour blobs
+    init: function (S) {
+      var pal = palette(S), n = Math.max(3, Math.min(9, Math.round(5 * S.o.density))), i; S.bl = [];
+      for (i = 0; i < n; i++) S.bl.push({ c: pal[i % pal.length], fx: .12 + Math.random() * .2, fy: .12 + Math.random() * .2, px: Math.random() * TAU, py: Math.random() * TAU, r: .36 + Math.random() * .2 });
+    },
+    draw: function (S, t) {
+      var c = S.cx, T = t * S.o.speed, W = S.W, H = S.H, R0 = Math.max(W, H);
+      S.bl.forEach(function (b) {
+        var x = W * (.5 + .4 * Math.sin(T * b.fx + b.px)), y = H * (.5 + .4 * Math.sin(T * b.fy + b.py)), R = R0 * b.r, g = c.createRadialGradient(x, y, 0, x, y, R);
+        g.addColorStop(0, rgba(b.c, .4)); g.addColorStop(.55, rgba(b.c, .14)); g.addColorStop(1, rgba(b.c, 0));
+        c.fillStyle = g; c.fillRect(0, 0, W, H);
+      });
+    }
+  };
+
+  MODES.orb = {       // a soft sphere that breathes
+    init: function (S) { S.ox = 0; S.oy = 0; },
+    draw: function (S, t) {
+      var c = S.cx, T = t * S.o.speed, W = S.W, H = S.H, pal = palette(S), r = Math.min(W, H) * (.2 + .012 * S.o.density) * (1 + .05 * Math.sin(T * .9));
+      var tx = 0, ty = 0; if (S.o.mouse && S.m.on) { tx = (S.m.x - W / 2) * .04; ty = (S.m.y - H / 2) * .04; }
+      S.ox += (tx - S.ox) * .06; S.oy += (ty - S.oy) * .06;
+      var x = W / 2 + S.ox + Math.sin(T * .31) * r * .08, y = H / 2 + S.oy + Math.cos(T * .27) * r * .08, g;
+      g = c.createRadialGradient(x, y, r * .6, x, y, r * 2.6);      // halo
+      g.addColorStop(0, rgba(pal[0], .3)); g.addColorStop(.5, rgba(pal[1], .1)); g.addColorStop(1, rgba(pal[1], 0));
+      c.fillStyle = g; c.fillRect(0, 0, W, H);
+      g = c.createRadialGradient(x - r * .35, y - r * .4, r * .05, x, y, r);   // body, lit from the upper left
+      g.addColorStop(0, rgba(mix(pal[0], [255, 255, 255], .7), .85)); g.addColorStop(.4, rgba(pal[0], .6)); g.addColorStop(.86, rgba(pal[2], .5)); g.addColorStop(1, rgba(pal[2], 0));
+      c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill();
     }
   };
 

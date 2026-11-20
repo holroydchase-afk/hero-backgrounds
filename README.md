@@ -27,7 +27,11 @@ Animated canvas backgrounds for a hero section, in one small file. No dependenci
 
 ## Modes
 
-`constellation`, `neural`, `organic`, `flow`, `grid`, `dots`, `waves`, `threads`. The list is also at `HeroBG.modes`.
+`constellation`, `neural`, `organic`, `flow`, `grid`, `dots`, `waves`, `threads`, `aurora`, `mesh`, `orb`. The list is also at `HeroBG.modes`.
+
+## Performance and motion
+
+Frames are drawn on `requestAnimationFrame`, which the browser syncs to the display and stops in hidden tabs. An `IntersectionObserver` also stops the loop while the element is scrolled off screen and restarts it when it returns. With `prefers-reduced-motion: reduce`, or `speed: 0`, it draws one still frame and no loop runs. Canvas resolution is capped at 2x.
 
 ## License
 
