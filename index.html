@@ -53,7 +53,7 @@ pre{margin:0;background:rgba(0,0,0,.08);border:1px solid var(--line);border-radi
 </style>
 </head>
 <body>
-<section class="stage" id="stage"><div class="hero"><h1>Backgrounds that stay out of the way</h1><p>Eleven animated modes in one small file. No dependencies, no network.</p></div></section>
+<section class="stage" id="stage"><div class="hero"><h1>Backgrounds that stay out of the way</h1><p>Thirteen animated modes in one small file. No dependencies, no network.</p></div></section>
 <div class="top"><span class="mark">hero-backgrounds</span><div class="links"><a class="pill glass" href="https://github.com/holroydchase-afk/hero-backgrounds">GitHub</a><button class="pill glass" id="tog" aria-pressed="false">Dark</button></div></div>
 <div class="dock">
 <div class="modes" id="modes" role="group" aria-label="Mode"></div>
@@ -72,7 +72,7 @@ pre{margin:0;background:rgba(0,0,0,.08);border:1px solid var(--line);border-radi
 <script>
 /*! hero-backgrounds.js: animated canvas backgrounds in one small file. No dependencies, no network.
     HeroBG(element, { mode: 'constellation', color: '#4A6B4C', speed: 1, density: 1 })  -> { setOptions, destroy }
-    Modes: constellation, neural, organic, flow, grid, dots, waves, threads, aurora, mesh, orb. MIT licence. */
+    Modes: constellation, neural, organic, flow, grid, dots, waves, threads, aurora, mesh, orb, particles, pulse. MIT licence. */
 (function (root) {
   'use strict';
   var TAU = Math.PI * 2;
@@ -343,6 +343,41 @@ pre{margin:0;background:rgba(0,0,0,.08);border:1px solid var(--line);border-radi
       g.addColorStop(0, rgba(mix(pal[0], [255, 255, 255], .75), .95)); g.addColorStop(.35, rgba(pal[0], .85)); g.addColorStop(.92, rgba(pal[2], .9)); g.addColorStop(1, rgba(mix(pal[2], [255, 255, 255], .35), .95));
       c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill();
       c.lineWidth = 1.5; c.strokeStyle = rgba(mix(pal[0], [255, 255, 255], .6), .55); c.stroke();
+    }
+  };
+
+  MODES.particles = {   // drifting, twinkling specks at different depths; the pointer pushes them aside
+    init: function (S) {
+      S.pc = mix(S.line, S.accent, .5); var n = Math.round(S.W * S.H / 5000 * S.o.density), i; S.pt = [];
+      for (i = 0; i < n; i++) { var z = Math.random(); S.pt.push({ x: Math.random() * S.W, y: Math.random() * S.H, z: z, r: .8 + z * 2.1, vy: -(.08 + z * .3), ph: Math.random() * TAU, a: i % 9 === 0, dx: 0, dy: 0 }); }
+    },
+    draw: function (S, t, dt) {
+      var c = S.cx, T = t * S.o.speed, k = dt * 60 * S.o.speed, W = S.W, H = S.H, hit = S.o.mouse && S.m.on;
+      S.pt.forEach(function (p) {
+        p.y += p.vy * k; p.x += Math.sin(T * .4 + p.ph) * .12 * p.z * k;
+        if (hit) { var dx = p.x + p.dx - S.m.x, dy = p.y + p.dy - S.m.y, d = Math.hypot(dx, dy); if (d < 130 && d > 0) { var f = (1 - d / 130) * 1.6 * p.z; p.dx += dx / d * f; p.dy += dy / d * f; } }
+        p.dx *= .94; p.dy *= .94;
+        if (p.y < -4) { p.y = H + 4; p.x = Math.random() * W; } if (p.x < -4) p.x = W + 4; if (p.x > W + 4) p.x = -4;
+        var tw = .55 + .45 * Math.sin(T * 1.3 + p.ph), x = p.x + p.dx, y = p.y + p.dy;
+        c.fillStyle = p.a ? rgba(S.accent, .35 + .6 * tw) : rgba(S.pc, (.35 + .6 * p.z) * tw + .15);
+        c.beginPath(); c.arc(x, y, p.r, 0, TAU); c.fill();
+        if (p.a && p.z > .5) { c.fillStyle = rgba(S.accent, .08 * tw); c.beginPath(); c.arc(x, y, p.r * 5, 0, TAU); c.fill(); }
+      });
+    }
+  };
+
+  MODES.pulse = {     // a grid of dots that swell in rings spreading from the centre, or from the pointer
+    init: function (S) { S.px = S.W / 2; S.py = S.H / 2; },
+    draw: function (S, t) {
+      var c = S.cx, T = t * S.o.speed, W = S.W, H = S.H, G = 26 / Math.sqrt(S.o.density), B = 6, b, x, y, cols = [], paths = [];
+      var hit = S.o.mouse && S.m.on, tx = hit ? S.m.x : W / 2, ty = hit ? S.m.y : H / 2;
+      S.px += (tx - S.px) * .06; S.py += (ty - S.py) * .06;
+      for (b = 0; b <= B; b++) { cols[b] = rgba(mix(S.line, S.accent, b / B), .35 + .65 * b / B); paths[b] = new Path2D(); }
+      for (y = G / 2; y < H; y += G) for (x = G / 2; x < W; x += G) {
+        var d = Math.hypot(x - S.px, y - S.py), v = Math.max(0, Math.sin(d * .022 - T * 1.6)), q = Math.round(Math.pow(v, 3) * B);
+        paths[q].moveTo(x + 1.1 + q * .38, y); paths[q].arc(x, y, 1.1 + q * .38, 0, TAU);
+      }
+      for (b = 0; b <= B; b++) { c.fillStyle = cols[b]; c.fill(paths[b]); }
     }
   };
 

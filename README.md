@@ -27,7 +27,7 @@ Animated canvas backgrounds for a hero section, in one small file. No dependenci
 
 ## Modes
 
-`constellation`, `neural`, `organic`, `flow`, `grid`, `dots`, `waves`, `threads`, `aurora`, `mesh`, `orb`. The list is also at `HeroBG.modes`.
+`constellation`, `neural`, `organic`, `flow`, `grid`, `dots`, `waves`, `threads`, `aurora`, `mesh`, `orb`, `particles`, `pulse`. The list is also at `HeroBG.modes`.
 
 ## Performance and motion
 

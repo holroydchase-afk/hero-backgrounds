@@ -8,7 +8,7 @@ Updated 2026-11-20 (new modes).
 - Demo served from GitHub Pages. Workflow `.github/workflows/pages.yml` deploys `index.html` and `hero-backgrounds.js` on every push to `main` (Pages source must be set to GitHub Actions).
 
 ## In progress
-- PR: three new modes (aurora, mesh, orb), README note on pausing and reduced motion. Waiting on Chase to review the preview and merge; merging deploys to Pages.
+- PR: five new modes (aurora, mesh, orb, particles, pulse), README note on pausing and reduced motion. Waiting on Chase to review the preview and merge; merging deploys to Pages.
 
 ## Next step
 - Chase: review and merge the demo PR, then send the Pages URL to the site thread so chaseholroyd.com can link it.
