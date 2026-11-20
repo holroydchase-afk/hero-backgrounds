@@ -8,7 +8,7 @@ Updated 2026-11-20 (demo panel alignment).
 - Demo served from GitHub Pages. Workflow `.github/workflows/pages.yml` deploys `index.html` and `hero-backgrounds.js` on every push to `main` (Pages source must be set to GitHub Actions).
 
 ## In progress
-- PR: collapsed Settings box lines up with the top row of mode chips and is shorter. Waiting on Chase to merge; merging deploys to Pages.
+- PR: title stays clear of the settings panel; line colour now fades the accent toward the page colour, so greyscale accents no longer change line strength and dark pages stay visible. Waiting on Chase to merge; merging deploys to Pages.
 
 ## Next step
 - Chase: review and merge the demo PR, then send the Pages URL to the site thread so chaseholroyd.com can link it.

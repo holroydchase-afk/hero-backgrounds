@@ -18,6 +18,8 @@ button,input{font:inherit;color:inherit}
 .hero{position:relative;z-index:1;max-width:720px}
 .hero h1{font-size:clamp(38px,7vw,84px);line-height:1.02;margin:0 0 16px;letter-spacing:-.03em;text-wrap:balance}
 .hero p{margin:0;color:var(--muted);font-size:clamp(17px,2.2vw,22px)}
+.stage{padding-bottom:140px}
+body:has(.panel[open]) .stage{padding-right:392px}
 .top{position:fixed;z-index:3;top:max(16px,env(safe-area-inset-top));left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right));display:flex;justify-content:space-between;align-items:center;gap:12px}
 .mark{font-weight:600;letter-spacing:-.01em}
 .glass{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
@@ -42,7 +44,7 @@ input[type=color]{width:44px;height:34px;padding:2px;border:1px solid var(--line
 pre{margin:0;background:rgba(0,0,0,.08);border:1px solid var(--line);border-radius:10px;padding:12px;font:12.5px/1.5 var(--mono);overflow:auto;max-height:150px;white-space:pre}
 .cp{margin-top:10px;width:100%;justify-content:center;border:1.5px solid var(--line);background:transparent}
 @media(max-width:760px){
-  .stage{padding-bottom:300px}
+  body:has(.panel[open]) .stage{padding-right:max(20px,env(safe-area-inset-right))}
   .dock{flex-direction:column;align-items:stretch}
   .panel{width:100%}
   .modes{flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding-bottom:2px;scrollbar-width:none}.modes .pill{flex:none}
@@ -280,6 +282,13 @@ pre{margin:0;background:rgba(0,0,0,.08);border:1px solid var(--line);border-radi
     }
   };
 
+  function pageBg(el) {    // first opaque background up the tree, else the colour scheme's default
+    for (var n = el; n && n.nodeType === 1; n = n.parentNode) {
+      var m = /rgba?\((\d+)[ ,]+(\d+)[ ,]+(\d+)(?:[ ,/]+([\d.]+))?/.exec(getComputedStyle(n).backgroundColor);
+      if (m && (m[4] === undefined || +m[4] > .5)) return [+m[1], +m[2], +m[3]];
+    }
+    return matchMedia('(prefers-color-scheme: dark)').matches ? [20, 24, 22] : [250, 250, 247];
+  }
   function HeroBG(el, opts) {
     if (typeof el === 'string') el = document.querySelector(el);
     if (!el) throw new Error('HeroBG: element not found');
@@ -294,7 +303,7 @@ pre{margin:0;background:rgba(0,0,0,.08);border:1px solid var(--line);border-radi
       S.o = Object.assign({}, S.o || DEFAULTS, o || {});
       if (!MODES[S.o.mode]) throw new Error('HeroBG: unknown mode "' + S.o.mode + '"');
       S.accent = rgb(S.o.color); S.accent2 = S.o.accent2 ? rgb(S.o.accent2) : null;
-      S.line = S.o.line ? rgb(S.o.line) : (.299 * S.accent[0] + .587 * S.accent[1] + .114 * S.accent[2] > 140 ? mix(S.accent, [0, 0, 0], .72) : mix(S.accent, [255, 255, 255], .78));  // light accent = dark page, so dim the lines
+      S.line = S.o.line ? rgb(S.o.line) : mix(S.accent, pageBg(el), .6);  // accent faded toward the page colour, so it changes smoothly with the accent
       cv.style.background = S.o.background || 'transparent';
       resize();
     }
@@ -333,6 +342,9 @@ pre{margin:0;background:rgba(0,0,0,.08);border:1px solid var(--line);border-radi
 (function(){
 var r=document.documentElement,tog=document.getElementById('tog'),stage=document.getElementById('stage'),panel=document.getElementById('panel');
 if(matchMedia('(max-width:760px)').matches)panel.open=false;
+var dock=document.querySelector('.dock');
+function fit(){stage.style.paddingBottom=matchMedia('(max-width:760px)').matches?(dock.offsetHeight+32)+'px':''}
+fit();if(window.ResizeObserver)new ResizeObserver(fit).observe(dock);addEventListener('resize',fit);
 var opts={mode:'constellation',color:'#0b7a4b',speed:1,density:1,mouse:true},bg;
 try{bg=HeroBG(stage,opts)}catch(e){console.error(e)}
 function isDark(){return r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches}
