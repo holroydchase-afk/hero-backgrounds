@@ -1,6 +1,6 @@
 # HANDOFF
 
-Updated 2026-11-20 (demo panel alignment).
+Updated 2026-11-20 (new modes).
 
 ## Done
 - Community files (2026-11-24, Chase: will engineers see an amateur repo): added CONTRIBUTING, CODE_OF_CONDUCT, issue templates and a PR template (plus SECURITY.md where missing), per `studio-agents` docs/repo-standards.md. Next: set the repo description and topics in GitHub settings, add a CI badge.
@@ -9,7 +9,7 @@ Updated 2026-11-20 (demo panel alignment).
 - Demo served from GitHub Pages. Workflow `.github/workflows/pages.yml` deploys `index.html` and `hero-backgrounds.js` on every push to `main` (Pages source must be set to GitHub Actions).
 
 ## In progress
-- PR: title stays clear of the settings panel; line colour now fades the accent toward the page colour, so greyscale accents no longer change line strength and dark pages stay visible. Waiting on Chase to merge; merging deploys to Pages.
+- PR: five new modes (aurora, mesh, particles, pulse, noise), primary and secondary colors, README note on pausing and reduced motion. Waiting on Chase to review the preview and merge; merging deploys to Pages.
 
 ## Next step
 - Chase: review and merge the demo PR, then send the Pages URL to the site thread so chaseholroyd.com can link it.

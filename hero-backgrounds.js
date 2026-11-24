@@ -1,6 +1,6 @@
 /*! hero-backgrounds.js: animated canvas backgrounds in one small file. No dependencies, no network.
     HeroBG(element, { mode: 'constellation', color: '#4A6B4C', speed: 1, density: 1 })  -> { setOptions, destroy }
-    Modes: constellation, neural, organic, flow, grid, dots, waves, threads. MIT licence. */
+    Modes: constellation, neural, organic, flow, grid, dots, waves, threads, aurora, mesh, particles, pulse, noise. MIT licence. */
 (function (root) {
   'use strict';
   var TAU = Math.PI * 2;
@@ -8,7 +8,7 @@
     mode: 'constellation',
     color: '#4A6B4C',       // accent: signals, hubs, highlights
     line: null,             // line/dot base colour; default is the accent at low opacity
-    accent2: null,          // optional second accent (hubs in organic); default = color
+    accent2: null,          // optional secondary colour; the multi-colour modes blend it with `color`
     speed: 1,               // 0 freezes, 2 is double
     density: 1,             // more or fewer elements
     mouse: true,            // respond to the pointer where the mode supports it
@@ -23,6 +23,23 @@
   }
   function rgba(c, a) { return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')'; }
   function mix(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t].map(Math.round); }
+
+  function shift(c, deg) {    // rotate a colour's hue; greys stay grey
+    var r = c[0] / 255, g = c[1] / 255, b = c[2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, h = 0, s = 0, d = mx - mn;
+    if (d) { s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn); h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; }
+    h = (h + deg + 360) % 360;
+    function f(n) { var k = (n + h / 30) % 12, a = s * Math.min(l, 1 - l); return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))); }
+    return [f(0), f(8), f(4)];
+  }
+  function palette(S) { return S.accent2 ? [S.accent, S.accent2, mix(S.accent, S.accent2, .5), shift(S.accent2, 28)] : [S.accent, shift(S.accent, -38), shift(S.accent, 34), shift(S.accent, 72)]; }  // primary + secondary, or neighbouring hues of the primary
+
+  function hash2(x, y) { var h = (x * 374761393 + y * 668265263) | 0; h = (h ^ (h >>> 13)) * 1274126177 | 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967295; }
+  function vnoise(x, y) {       // smooth value noise, 0..1
+    var xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf),
+        a = hash2(xi, yi), b = hash2(xi + 1, yi), c = hash2(xi, yi + 1), d = hash2(xi + 1, yi + 1);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  }
+  function fbm(x, y) { return (vnoise(x, y) * .55 + vnoise(x * 2.03 + 7.1, y * 2.03 + 3.7) * .3 + vnoise(x * 4.1 + 1.9, y * 4.1 + 9.3) * .15); }
 
   /* Each mode: init(S) builds state from S.W, S.H, S.o; draw(S, t, dt) paints one frame. */
   var MODES = {};
@@ -43,7 +60,7 @@
           if (d < 150) { c.strokeStyle = rgba(S.line, (1 - d / 150) * .9); c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); }
         }
       }
-      p.forEach(function (a) { c.fillStyle = a.a ? rgba(S.accent, 1) : rgba(S.line, 1); c.beginPath(); c.arc(a.x, a.y, a.a ? 3 : 2, 0, TAU); c.fill(); });
+      p.forEach(function (a, i) { c.fillStyle = a.a ? rgba(i % 14 === 0 ? S.s : S.accent, 1) : rgba(S.line, 1); c.beginPath(); c.arc(a.x, a.y, a.a ? 3 : 2, 0, TAU); c.fill(); });
     }
   };
 
@@ -175,7 +192,7 @@
         c.fill();
       }
       layer(28 / Math.sqrt(S.o.density), 14, 1.3, rgba(S.line, 1), S.tx * 10 + ax, S.ty * 10 + ay);
-      layer(84 / Math.sqrt(S.o.density), 0, 3, rgba(S.accent, .8), -S.tx * 22 - ax * 2, -S.ty * 22 - ay * 2);
+      layer(84 / Math.sqrt(S.o.density), 0, 3, rgba(S.s, .8), -S.tx * 22 - ax * 2, -S.ty * 22 - ay * 2);
     }
   };
 
@@ -186,7 +203,7 @@
       c.lineWidth = 1.3;
       for (i = 0; i < n; i++) {
         var f = i / (n - 1), base = H * (.3 + .6 * f), amp = 16 + 34 * f;
-        c.strokeStyle = i === n - 1 ? rgba(S.accent, .55) : rgba(mix(S.line, S.accent, f * .5), .35 + .5 * f);
+        c.strokeStyle = i === n - 1 ? rgba(S.s, .55) : rgba(mix(S.line, mix(S.accent, S.s, f), f * .5), .35 + .5 * f);
         c.beginPath();
         for (x = 0; x <= W; x += 8) {
           var y = base + Math.sin(x * .004 + T * .35 + i * .6) * amp + Math.sin(x * .011 - T * .5 + i) * amp * .35;
@@ -205,8 +222,108 @@
       for (var i = 0; i < n; i++) {
         var left = i % 2 === 0, k = Math.floor(i / 2), sx = left ? -10 : W + 10, sy = H * (k / (n / 2)) + Math.sin(T * .2 + i) * 14;
         var cxm = W / 2 + (left ? -1 : 1) * (W * .22) + Math.sin(T * .15 + i * 1.7) * 30, cym = sy + (ty - sy) * .2 + Math.cos(T * .2 + i) * 20;
-        c.strokeStyle = i % 5 === 0 ? rgba(S.accent, .4) : rgba(S.line, .7); c.beginPath(); c.moveTo(sx, sy); c.quadraticCurveTo(cxm, cym, tx, ty); c.stroke();
+        c.strokeStyle = i % 5 === 0 ? rgba(S.s, .4) : rgba(S.line, .7); c.beginPath(); c.moveTo(sx, sy); c.quadraticCurveTo(cxm, cym, tx, ty); c.stroke();
       }
+    }
+  };
+
+  MODES.aurora = {    // soft light curtains drifting across the page
+    init: function (S) {
+      var pal = palette(S), n = Math.max(2, Math.min(7, Math.round(3 * S.o.density))), i; S.rb = [];
+      for (i = 0; i < n; i++) {
+        var col = pal[i % pal.length], st = document.createElement('canvas'), g, x;
+        st.width = 1; st.height = 256; x = st.getContext('2d'); g = x.createLinearGradient(0, 0, 0, 256);
+        g.addColorStop(0, rgba(col, 0)); g.addColorStop(.55, rgba(col, .2)); g.addColorStop(.93, rgba(col, .55)); g.addColorStop(.97, rgba(mix(col, [255, 255, 255], .45), .85)); g.addColorStop(1, rgba(col, 0));
+        x.fillStyle = g; x.fillRect(0, 0, 1, 256);
+        S.rb.push({ st: st, y: .3 + .4 * (n > 1 ? i / (n - 1) : .5), ph: Math.random() * TAU, sp: .6 + Math.random() * .6, f: .8 + Math.random() * 1.1, amp: .07 + Math.random() * .07, h: .2 + Math.random() * .12 });
+      }
+    },
+    draw: function (S, t) {
+      var c = S.cx, T = t * S.o.speed, W = S.W, H = S.H, i, x;
+      S.rb.forEach(function (r) {
+        for (x = 0; x < W; x += 2) {
+          var yb = H * r.y + Math.sin(x * .0035 * r.f + T * .25 * r.sp + r.ph) * H * r.amp + Math.sin(x * .009 - T * .18 * r.sp + r.ph * 2) * H * r.amp * .4,
+              hh = H * r.h * (.72 + .28 * Math.sin(x * .006 + T * .3 + r.ph));
+          c.drawImage(r.st, 0, 0, 1, 256, x, yb - hh, 2, hh);
+        }
+      });
+    }
+  };
+
+  MODES.mesh = {      // slow blending colour blobs
+    init: function (S) {
+      var pal = palette(S), n = Math.max(3, Math.min(9, Math.round(5 * S.o.density))), i; S.bl = [];
+      for (i = 0; i < n; i++) S.bl.push({ c: pal[i % pal.length], fx: .12 + Math.random() * .2, fy: .12 + Math.random() * .2, px: Math.random() * TAU, py: Math.random() * TAU, r: .3 + .16 * Math.random() });
+    },
+    draw: function (S, t) {
+      var c = S.cx, T = t * S.o.speed, W = S.W, H = S.H, R0 = Math.max(W, H);
+      S.bl.forEach(function (b) {
+        var x = W * (.5 + .4 * Math.sin(T * b.fx + b.px)), y = H * (.5 + .4 * Math.sin(T * b.fy + b.py)), R = R0 * b.r, g = c.createRadialGradient(x, y, 0, x, y, R);
+        g.addColorStop(0, rgba(b.c, .7)); g.addColorStop(.4, rgba(b.c, .38)); g.addColorStop(.75, rgba(b.c, .1)); g.addColorStop(1, rgba(b.c, 0));
+        c.fillStyle = g; c.fillRect(0, 0, W, H);
+      });
+    }
+  };
+
+  MODES.particles = {   // drifting, twinkling specks at different depths; the pointer pushes them aside
+    init: function (S) {
+      S.pc = mix(S.line, S.accent, .5); var n = Math.round(S.W * S.H / 5000 * S.o.density), i; S.pt = [];
+      for (i = 0; i < n; i++) { var z = Math.random(); S.pt.push({ x: Math.random() * S.W, y: Math.random() * S.H, z: z, r: .8 + z * 2.1, vy: -(.08 + z * .3), ph: Math.random() * TAU, a: i % 9 === 0, sc: i % 18 === 0, dx: 0, dy: 0 }); }
+    },
+    draw: function (S, t, dt) {
+      var c = S.cx, T = t * S.o.speed, k = dt * 60 * S.o.speed, W = S.W, H = S.H, hit = S.o.mouse && S.m.on;
+      S.pt.forEach(function (p) {
+        p.y += p.vy * k; p.x += Math.sin(T * .4 + p.ph) * .12 * p.z * k;
+        if (hit) { var dx = p.x + p.dx - S.m.x, dy = p.y + p.dy - S.m.y, d = Math.hypot(dx, dy); if (d < 130 && d > 0) { var f = (1 - d / 130) * 1.6 * p.z; p.dx += dx / d * f; p.dy += dy / d * f; } }
+        p.dx *= .94; p.dy *= .94;
+        if (p.y < -4) { p.y = H + 4; p.x = Math.random() * W; } if (p.x < -4) p.x = W + 4; if (p.x > W + 4) p.x = -4;
+        var tw = .55 + .45 * Math.sin(T * 1.3 + p.ph), x = p.x + p.dx, y = p.y + p.dy;
+        c.fillStyle = p.a ? rgba(p.sc ? S.s : S.accent, .35 + .6 * tw) : rgba(S.pc, (.35 + .6 * p.z) * tw + .15);
+        c.beginPath(); c.arc(x, y, p.r, 0, TAU); c.fill();
+        if (p.a && p.z > .5) { c.fillStyle = rgba(S.accent, .08 * tw); c.beginPath(); c.arc(x, y, p.r * 5, 0, TAU); c.fill(); }
+      });
+    }
+  };
+
+  MODES.pulse = {     // a grid of dots that swell in rings spreading from the centre, or from the pointer
+    init: function (S) { S.px = S.W / 2; S.py = S.H / 2; },
+    draw: function (S, t) {
+      var c = S.cx, T = t * S.o.speed, W = S.W, H = S.H, G = 26 / Math.sqrt(S.o.density), B = 6, b, x, y, cols = [], paths = [];
+      var hit = S.o.mouse && S.m.on, tx = hit ? S.m.x : W / 2, ty = hit ? S.m.y : H / 2;
+      S.px += (tx - S.px) * .06; S.py += (ty - S.py) * .06;
+      for (b = 0; b <= B; b++) { cols[b] = rgba(mix(S.line, mix(S.accent, S.s, b / B), b / B), .35 + .65 * b / B); paths[b] = new Path2D(); }
+      for (y = G / 2; y < H; y += G) for (x = G / 2; x < W; x += G) {
+        var d = Math.hypot(x - S.px, y - S.py), v = Math.max(0, Math.sin(d * .022 - T * 1.6)), q = Math.round(Math.pow(v, 3) * B);
+        paths[q].moveTo(x + 1.1 + q * .38, y); paths[q].arc(x, y, 1.1 + q * .38, 0, TAU);
+      }
+      for (b = 0; b <= B; b++) { c.fillStyle = cols[b]; c.fill(paths[b]); }
+    }
+  };
+
+  MODES.noise = {     // a slowly flowing, domain-warped noise field with fine grain, drawn at low resolution and scaled up
+    init: function (S) {
+      var pal = palette(S), i, cell = 5;
+      S.gw = Math.max(2, Math.ceil(S.W / cell)); S.gh = Math.max(2, Math.ceil(S.H / cell));
+      S.nc = document.createElement('canvas'); S.nc.width = S.gw; S.nc.height = S.gh; S.nx = S.nc.getContext('2d'); S.img = S.nx.createImageData(S.gw, S.gh);
+      S.lut = []; for (i = 0; i < 64; i++) { var f = i / 63, col = f < .6 ? mix(pal[0], pal[1], f / .6) : mix(pal[1], mix(pal[2], [255, 255, 255], .35), (f - .6) / .4); S.lut.push([col[0], col[1], col[2], Math.round(255 * Math.min(.85, f * f * 1.1 + .02))]); }
+      S.sx = Math.random() * 50; S.sy = Math.random() * 50; S.ox = S.oy = 0;
+      var g = document.createElement('canvas'), gx; g.width = g.height = 128; gx = g.getContext('2d'); var gi = gx.createImageData(128, 128), bg = pageBg(S.el), dark = (bg[0] + bg[1] + bg[2]) / 3 < 128;
+      for (i = 0; i < gi.data.length; i += 4) { gi.data[i] = gi.data[i + 1] = gi.data[i + 2] = dark ? 255 : 0; gi.data[i + 3] = Math.random() * 26; }
+      gx.putImageData(gi, 0, 0); S.grain = S.cx.createPattern(g, 'repeat');
+    },
+    draw: function (S, t) {
+      var T = t * S.o.speed, gw = S.gw, gh = S.gh, d = S.img.data, sc = .0045 * S.o.density * 5, x, y, k = 0, lut = S.lut;
+      var tx = S.o.mouse && S.m.on ? (S.m.x / S.W - .5) * 1.2 : 0, ty = S.o.mouse && S.m.on ? (S.m.y / S.H - .5) * 1.2 : 0;
+      S.ox += (tx - S.ox) * .05; S.oy += (ty - S.oy) * .05;
+      for (y = 0; y < gh; y++) for (x = 0; x < gw; x++) {
+        var px = x * sc * .2 + S.sx + S.ox, py = y * sc * .2 + S.sy + S.oy,
+            w = fbm(px + T * .05, py - T * .035), v = fbm(px + 2.6 * w - T * .03, py + 2.6 * w + T * .04),
+            f = Math.max(0, Math.min(1, (v - .28) * 2.1)), e = lut[Math.round(f * 63)];
+        d[k++] = e[0]; d[k++] = e[1]; d[k++] = e[2]; d[k++] = e[3];
+      }
+      S.nx.putImageData(S.img, 0, 0);
+      S.cx.imageSmoothingEnabled = true; S.cx.drawImage(S.nc, 0, 0, gw, gh, 0, 0, S.W, S.H);
+      S.cx.fillStyle = S.grain; S.cx.fillRect(0, 0, S.W, S.H);
     }
   };
 
@@ -220,7 +337,7 @@
   function HeroBG(el, opts) {
     if (typeof el === 'string') el = document.querySelector(el);
     if (!el) throw new Error('HeroBG: element not found');
-    var cv = document.createElement('canvas'), S = { cx: cv.getContext('2d'), W: 0, H: 0, m: { x: 0, y: 0, on: false } }, raf = 0, vis = true, last = 0, t = 0, dead = false;
+    var cv = document.createElement('canvas'), S = { el: el, cx: cv.getContext('2d'), W: 0, H: 0, m: { x: 0, y: 0, on: false } }, raf = 0, vis = true, last = 0, t = 0, dead = false;
     var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     cv.setAttribute('aria-hidden', 'true');
     cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:block;z-index:0';
@@ -230,7 +347,7 @@
     function apply(o) {
       S.o = Object.assign({}, S.o || DEFAULTS, o || {});
       if (!MODES[S.o.mode]) throw new Error('HeroBG: unknown mode "' + S.o.mode + '"');
-      S.accent = rgb(S.o.color); S.accent2 = S.o.accent2 ? rgb(S.o.accent2) : null;
+      S.accent = rgb(S.o.color); S.accent2 = S.o.accent2 ? rgb(S.o.accent2) : null; S.s = S.accent2 || S.accent;  // S.s: the secondary colour, or the primary when none is set
       S.line = S.o.line ? rgb(S.o.line) : mix(S.accent, pageBg(el), .6);  // accent faded toward the page colour, so it changes smoothly with the accent
       cv.style.background = S.o.background || 'transparent';
       resize();
