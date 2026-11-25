@@ -32,3 +32,7 @@ Animated canvas backgrounds for a hero section, in one small file. No dependenci
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+## How this is built
+
+Built with Claude Code (AI-assisted code, tests and docs). The maintainer directs the work and decides what ships. 
