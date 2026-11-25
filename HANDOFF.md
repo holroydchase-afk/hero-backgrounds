@@ -22,3 +22,6 @@ Updated 2026-11-20 (demo panel alignment).
 
 ## Blockers
 - None.
+
+## Repo best-practices pass (2026-11-25)
+- Done: added weekly Actions Dependabot. Part of the GitHub best-practices audit; see studio-agents docs/repo-standards.md.
